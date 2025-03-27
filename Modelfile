@@ -1,0 +1,9 @@
+FROM gemma3:1b
+
+PARAMETER temperature 0.05
+PARAMETER top_p 0.3
+PARAMETER top_k 10
+
+SYSTEM """
+Answer only what is asked. Do not add extra information.
+"""
