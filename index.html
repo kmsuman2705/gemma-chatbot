@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+        }
+        .chat-body {
+            height: 250px;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+        }
+        .chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ccc;
+        }
+        .chat-input input {
+            flex: 1;
+            padding: 5px;
+            border: none;
+            outline: none;
+        }
+        .chat-input button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="chat-header">Mario Chatbot</div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-input">
+            <input type="text" id="userInput" placeholder="Ask something...">
+            <button onclick="askQuestion()" type="submit">Send</button>
+        </div>
+    </div>
+
+    <script>
+        function askQuestion() {
+            let userInput = document.getElementById("userInput").value;
+            let chatBody = document.getElementById("chatBody");
+            
+            if (!userInput) return;
+            
+            let userMessage = `<p><strong>You:</strong> ${userInput}</p>`;
+            chatBody.innerHTML += userMessage;
+            document.getElementById("userInput").value = "";
+            
+            fetch("/ask", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ question: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let botMessage = `<p><strong>Mario:</strong> ${data.response || "Error in response"}</p>`;
+                chatBody.innerHTML += botMessage;
+                chatBody.scrollTop = chatBody.scrollHeight;
+            })
+            .catch(error => console.error("Error:", error));
+        }
+    </script>
+</body>
+</html>
