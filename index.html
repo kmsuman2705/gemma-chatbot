@@ -14,7 +14,7 @@
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 300px;
+            width: 320px;
             background: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
@@ -50,11 +50,20 @@
             padding: 5px 10px;
             cursor: pointer;
         }
+        .upload-container {
+            padding: 10px;
+            text-align: center;
+            border-top: 1px solid #ccc;
+        }
     </style>
 </head>
 <body>
     <div class="chatbot-container">
         <div class="chat-header">Mario Chatbot</div>
+        <div class="upload-container">
+            <input type="file" id="pdfUpload" accept="application/pdf">
+            <button onclick="uploadPDF()">Upload PDF</button>
+        </div>
         <div class="chat-body" id="chatBody"></div>
         <div class="chat-input">
             <input type="text" id="userInput" placeholder="Ask something...">
@@ -75,9 +84,7 @@
             
             fetch("/ask", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ question: userInput })
             })
             .then(response => response.json())
@@ -87,6 +94,25 @@
                 chatBody.scrollTop = chatBody.scrollHeight;
             })
             .catch(error => console.error("Error:", error));
+        }
+
+        function uploadPDF() {
+            let fileInput = document.getElementById("pdfUpload");
+            let file = fileInput.files[0];
+            if (!file) return;
+            
+            let formData = new FormData();
+            formData.append("file", file);  // **यहां "file" होना चाहिए, "pdf" नहीं**
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => console.error("Error uploading PDF:", error));
         }
     </script>
 </body>
