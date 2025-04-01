@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 import requests
-import pymupdf   # PyMuPDF for extracting text from PDFs
+import pymupdf  # PyMuPDF for extracting text from PDFs
 import os
 
 app = Flask(__name__)
@@ -37,14 +37,21 @@ def upload_pdf():
 def ask():
     user_input = request.json.get("question", "")
     
+    if not pdf_text:
+        return jsonify({"error": "No PDF content available. Please upload a PDF first."}), 400
+
+    # Check if the user question is related to content in the PDF
     keywords = ["suman", "linkedin", "github", "skills", "company", "work", "previous", "current"]
-    if any(keyword in user_input.lower() for keyword in keywords) and pdf_text:
-        context_text = f"Context from PDF:\n{pdf_text[:2000]}\n"
+    
+    # If keywords are present, provide context from the PDF
+    if any(keyword in user_input.lower() for keyword in keywords):
+        context_text = f"Context from PDF:\n{pdf_text[:2000]}\n"  # You can limit the context length if needed
     else:
-        context_text = "(General knowledge response, not using PDF)"
-    
-    prompt = f"{context_text}\nUser's question: {user_input}"
-    
+        context_text = "(PDF content not relevant for this question)"
+
+    # Create the prompt that asks the model
+    prompt = f"{context_text}\nUser's question: {user_input}\n\nAnswer only based on the PDF content. Do not provide any other information."
+
     data = {
         "model": MODEL_NAME,
         "prompt": prompt,
@@ -56,7 +63,7 @@ def ask():
     if response.status_code == 200:
         return jsonify(response.json())
     else:
-        return jsonify({"error": "Failed to get response"}), 500
+        return jsonify({"error": "Failed to get response from model"}), 500
 
 def extract_text_from_pdf(pdf_path):
     """Extract text from a PDF file."""
