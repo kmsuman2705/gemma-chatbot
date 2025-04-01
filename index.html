@@ -9,60 +9,49 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-        }
-        
-        /* Style for the icon that opens the chatbot */
-        .chat-icon {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #007bff;
-            color: white;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            text-align: center;
-            line-height: 50px;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            background-color: #f4f4f9;
         }
 
-        /* Chatbot container when open */
         .chatbot-container {
             position: fixed;
-            bottom: 80px; /* Push it up so it doesn’t overlap the icon */
+            bottom: 20px;
             right: 20px;
             width: 300px;
             background: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             overflow: hidden;
-            display: none; /* Hidden by default */
+            display: none;  /* Initially hidden */
         }
+
         .chat-header {
             background: #007bff;
             color: white;
             padding: 10px;
             text-align: center;
+            cursor: pointer;
         }
+
         .chat-body {
             height: 250px;
             padding: 10px;
             overflow-y: auto;
             border-bottom: 1px solid #ccc;
         }
+
         .chat-input {
             display: flex;
             padding: 10px;
             border-top: 1px solid #ccc;
         }
+
         .chat-input input {
             flex: 1;
             padding: 5px;
             border: none;
             outline: none;
         }
+
         .chat-input button {
             background: #007bff;
             color: white;
@@ -70,49 +59,121 @@
             padding: 5px 10px;
             cursor: pointer;
         }
+
+        .upload-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .upload-container input {
+            margin: 10px 0;
+        }
+
+        .chatbot-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .upload-status {
+            font-size: 14px;
+            color: green;
+        }
+
+        #uploadForm {
+            display: block;
+            margin-top: 10px;
+        }
+        
     </style>
 </head>
 <body>
-    <!-- Chatbot icon to open the chat -->
-    <div class="chat-icon" onclick="toggleChatbot()">💬</div>
 
-    <!-- Chatbot window -->
+    <!-- Chatbot Toggle Button -->
+    <div class="chatbot-toggle" onclick="toggleChatbot()">
+        <span>&#128172;</span> <!-- Chat bubble icon -->
+    </div>
+
+    <!-- Chatbot Container -->
     <div class="chatbot-container" id="chatbotContainer">
-        <div class="chat-header">Mario Chatbot</div>
-        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-header" onclick="toggleChatbot()">Mario Chatbot</div>
+        <div class="chat-body" id="chatBody">
+            <p><strong>Mario:</strong> Hi! Please upload a PDF to get started.</p>
+        </div>
         <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Ask something..." onkeydown="checkEnter(event)">
-            <button onclick="askQuestion()" type="submit">Send</button>
+            <div id="uploadSection" class="upload-container" style="display: block;">
+                <!-- PDF Upload Form -->
+                <form id="uploadForm" enctype="multipart/form-data" onsubmit="handleFileUpload(event)">
+                    <input type="file" name="file" id="fileInput" accept="application/pdf" required>
+                    <button type="submit">Upload PDF</button>
+                </form>
+                <p id="uploadStatus" class="upload-status"></p>
+            </div>
+            <div id="askSection" style="display: none;">
+                <!-- Question Input Section -->
+                <input type="text" id="userInput" placeholder="Ask something..." style="width: 100%; margin-bottom: 10px;" onkeydown="checkEnter(event)">
+                <button onclick="askQuestion()" type="submit">Send</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Toggle chatbot visibility
+        // Function to toggle the chatbot visibility
         function toggleChatbot() {
             const chatbotContainer = document.getElementById('chatbotContainer');
-            chatbotContainer.style.display = chatbotContainer.style.display === 'none' || chatbotContainer.style.display === '' ? 'block' : 'none';
+            chatbotContainer.style.display = chatbotContainer.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Send message when the user presses Enter
-        function checkEnter(event) {
-            if (event.key === "Enter") {
-                askQuestion();
-            }
+        // Handle the PDF upload inside the chatbot
+        function handleFileUpload(event) {
+            event.preventDefault();
+            const fileInput = document.getElementById("fileInput");
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            // Show uploading status
+            document.getElementById("uploadStatus").textContent = "Uploading PDF... Please wait.";
+
+            fetch("/upload", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("uploadStatus").textContent = data.message || "PDF uploaded successfully.";
+                // Once PDF is uploaded, allow the user to ask questions
+                document.getElementById("askSection").style.display = "block";
+                // Hide the upload section after the PDF is uploaded
+                document.getElementById("uploadSection").style.display = "none";
+            })
+            .catch(error => {
+                console.error("Error uploading PDF:", error);
+                document.getElementById("uploadStatus").textContent = "Error uploading PDF.";
+            });
         }
 
-        // Handle sending a question to the chatbot
+        // Handle user question submission
         function askQuestion() {
             let userInput = document.getElementById("userInput").value;
             let chatBody = document.getElementById("chatBody");
-            
+
             if (!userInput) return;
-            
-            // Display user message
+
             let userMessage = `<p><strong>You:</strong> ${userInput}</p>`;
             chatBody.innerHTML += userMessage;
             document.getElementById("userInput").value = "";
-            
-            // Send the question to the Flask server
+
+            // Sending question to the Flask server
             fetch("/ask", {
                 method: "POST",
                 headers: {
@@ -126,8 +187,21 @@
                 chatBody.innerHTML += botMessage;
                 chatBody.scrollTop = chatBody.scrollHeight;
             })
-            .catch(error => console.error("Error:", error));
+            .catch(error => {
+                console.error("Error:", error);
+                let botMessage = `<p><strong>Mario:</strong> Sorry, there was an error processing your request. Please try again later.</p>`;
+                chatBody.innerHTML += botMessage;
+                chatBody.scrollTop = chatBody.scrollHeight;
+            });
+        }
+
+        // Check if Enter key is pressed and trigger send action
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                askQuestion();  // Trigger the ask question function
+            }
         }
     </script>
+
 </body>
 </html>
