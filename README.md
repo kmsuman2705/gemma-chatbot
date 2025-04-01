@@ -8,3 +8,8 @@ python3 -m venv chatbot
 sudo apt install python3.12-venv 
 
 ls -l
+
+
+sudo chown -R ubuntu:ubuntu uploads
+
+
