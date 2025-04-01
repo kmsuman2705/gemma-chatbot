@@ -10,15 +10,35 @@
             margin: 0;
             padding: 0;
         }
-        .chatbot-container {
+        
+        /* Style for the icon that opens the chatbot */
+        .chat-icon {
             position: fixed;
             bottom: 20px;
+            right: 20px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Chatbot container when open */
+        .chatbot-container {
+            position: fixed;
+            bottom: 80px; /* Push it up so it doesn’t overlap the icon */
             right: 20px;
             width: 300px;
             background: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             overflow: hidden;
+            display: none; /* Hidden by default */
         }
         .chat-header {
             background: #007bff;
@@ -53,26 +73,46 @@
     </style>
 </head>
 <body>
-    <div class="chatbot-container">
+    <!-- Chatbot icon to open the chat -->
+    <div class="chat-icon" onclick="toggleChatbot()">💬</div>
+
+    <!-- Chatbot window -->
+    <div class="chatbot-container" id="chatbotContainer">
         <div class="chat-header">Mario Chatbot</div>
         <div class="chat-body" id="chatBody"></div>
         <div class="chat-input">
-            <input type="text" id="userInput" placeholder="Ask something...">
+            <input type="text" id="userInput" placeholder="Ask something..." onkeydown="checkEnter(event)">
             <button onclick="askQuestion()" type="submit">Send</button>
         </div>
     </div>
 
     <script>
+        // Toggle chatbot visibility
+        function toggleChatbot() {
+            const chatbotContainer = document.getElementById('chatbotContainer');
+            chatbotContainer.style.display = chatbotContainer.style.display === 'none' || chatbotContainer.style.display === '' ? 'block' : 'none';
+        }
+
+        // Send message when the user presses Enter
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                askQuestion();
+            }
+        }
+
+        // Handle sending a question to the chatbot
         function askQuestion() {
             let userInput = document.getElementById("userInput").value;
             let chatBody = document.getElementById("chatBody");
             
             if (!userInput) return;
             
+            // Display user message
             let userMessage = `<p><strong>You:</strong> ${userInput}</p>`;
             chatBody.innerHTML += userMessage;
             document.getElementById("userInput").value = "";
             
+            // Send the question to the Flask server
             fetch("/ask", {
                 method: "POST",
                 headers: {
