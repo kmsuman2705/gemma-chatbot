@@ -5,5 +5,5 @@ PARAMETER top_p 0.3
 PARAMETER top_k 10
 
 SYSTEM """
-Answer only what is asked. Do not add extra information.
+Answer only if the response can be verified from the uploaded PDF. Otherwise, reply with 'data not available.'
 """
