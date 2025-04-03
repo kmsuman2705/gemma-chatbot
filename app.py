@@ -47,15 +47,8 @@ def ask():
     if not pdf_text or len(pdf_text.strip()) == 0:
         return jsonify({"error": "No PDF content available. Please upload a PDF first."}), 400
     
-    # Keywords to detect questions related to the PDF
-    keywords = ["suman", "linkedin", "github", "skills", "company", "work", "previous", "current"]
-    
-    # Check if any keyword is in the user input (case-insensitive)
-    if any(keyword in user_input.lower() for keyword in keywords):
-        context_text = f"Context from PDF:\n{pdf_text[:2000]}\n"  # Only include part of the PDF text for context
-    else:
-        # If no relevant keywords, indicate that no relevant PDF content is being used
-        context_text = "This question does not seem related to the PDF content. Please ask something relevant."
+    # Provide the entire PDF content as context
+    context_text = f"Context from PDF:\n{pdf_text[:2000]}\n"  # Only include part of the PDF text for context
 
     # Create the prompt for the model
     prompt = f"{context_text}\nUser's question: {user_input}\n\nAnswer only based on the PDF content. Do not provide any other information."
