@@ -5,96 +5,127 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mario Chatbot</title>
     <style>
+        /* Global Styles */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f9;
+            background: linear-gradient(135deg, #1e3c72, #2a5298); /* Gradient Background */
         }
 
+        /* Chatbot Container */
         .chatbot-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 300px;
+            width: 320px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-            display: none;  /* Initially hidden */
+            display: none;
         }
 
+        /* Chatbot Header */
         .chat-header {
-            background: #007bff;
+            background: #ff5733;  /* Mario Red */
             color: white;
-            padding: 10px;
+            padding: 12px;
             text-align: center;
+            font-weight: bold;
             cursor: pointer;
         }
 
+        /* Chatbot Body */
         .chat-body {
-            height: 250px;
-            padding: 10px;
+            height: 280px;
+            padding: 12px;
             overflow-y: auto;
             border-bottom: 1px solid #ccc;
+            background-image: url('https://www.transparenttextures.com/patterns/inspiration-geometry.png');
+            display: flex;
+            flex-direction: column;
         }
 
+        /* Chat Input Area */
         .chat-input {
             display: flex;
             padding: 10px;
             border-top: 1px solid #ccc;
+            background: #f8f9fa;
         }
 
         .chat-input input {
             flex: 1;
-            padding: 5px;
+            padding: 8px;
             border: none;
+            border-radius: 6px;
             outline: none;
         }
 
         .chat-input button {
-            background: #007bff;
+            background: #ff5733;
             color: white;
             border: none;
-            padding: 5px 10px;
+            padding: 8px 12px;
             cursor: pointer;
+            border-radius: 6px;
         }
 
-        .upload-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .upload-container input {
-            margin: 10px 0;
-        }
-
+        /* Chatbot Toggle Button */
         .chatbot-toggle {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 50px;
-            height: 50px;
-            background-color: #007bff;
+            width: 55px;
+            height: 55px;
+            background: #ff5733;
             color: white;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            font-size: 24px;
+            transition: transform 0.2s;
+        }
+
+        .chatbot-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Chat Message Styling */
+        .user-message, .bot-message {
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 15px;
+            display: inline-block;
+            max-width: 75%;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+
+        .bot-message {
+            background: #eee;
+            color: black;
+            align-self: flex-start;
+        }
+
+        /* Upload Section */
+        .upload-container {
+            text-align: center;
+            margin-top: 20px;
         }
 
         .upload-status {
             font-size: 14px;
             color: green;
         }
-
-        #uploadForm {
-            display: block;
-            margin-top: 10px;
-        }
-        
     </style>
 </head>
 <body>
@@ -108,10 +139,10 @@
     <div class="chatbot-container" id="chatbotContainer">
         <div class="chat-header" onclick="toggleChatbot()">Mario Chatbot</div>
         <div class="chat-body" id="chatBody">
-            <p><strong>Mario:</strong> Hi! Please upload a PDF to get started.</p>
+            <div class="bot-message"><strong>Mario:</strong> Hi! Please upload a PDF to get started.</div>
         </div>
         <div class="chat-input">
-            <div id="uploadSection" class="upload-container" style="display: block;">
+            <div id="uploadSection" class="upload-container">
                 <!-- PDF Upload Form -->
                 <form id="uploadForm" enctype="multipart/form-data" onsubmit="handleFileUpload(event)">
                     <input type="file" name="file" id="fileInput" accept="application/pdf" required>
@@ -121,8 +152,8 @@
             </div>
             <div id="askSection" style="display: none;">
                 <!-- Question Input Section -->
-                <input type="text" id="userInput" placeholder="Ask something..." style="width: 100%; margin-bottom: 10px;" onkeydown="checkEnter(event)">
-                <button onclick="askQuestion()" type="submit">Send</button>
+                <input type="text" id="userInput" placeholder="Ask something..." onkeydown="checkEnter(event)">
+                <button onclick="askQuestion()">Send</button>
             </div>
         </div>
     </div>
@@ -151,9 +182,7 @@
             .then(response => response.json())
             .then(data => {
                 document.getElementById("uploadStatus").textContent = data.message || "PDF uploaded successfully.";
-                // Once PDF is uploaded, allow the user to ask questions
                 document.getElementById("askSection").style.display = "block";
-                // Hide the upload section after the PDF is uploaded
                 document.getElementById("uploadSection").style.display = "none";
             })
             .catch(error => {
@@ -169,27 +198,23 @@
 
             if (!userInput) return;
 
-            let userMessage = `<p><strong>You:</strong> ${userInput}</p>`;
+            let userMessage = `<div class="user-message"><strong>You:</strong> ${userInput}</div>`;
             chatBody.innerHTML += userMessage;
             document.getElementById("userInput").value = "";
 
-            // Sending question to the Flask server
             fetch("/ask", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ question: userInput })
             })
             .then(response => response.json())
             .then(data => {
-                let botMessage = `<p><strong>Mario:</strong> ${data.response || "Error in response"}</p>`;
+                let botMessage = `<div class="bot-message"><strong>Mario:</strong> ${data.response || "Error in response"}</div>`;
                 chatBody.innerHTML += botMessage;
                 chatBody.scrollTop = chatBody.scrollHeight;
             })
             .catch(error => {
-                console.error("Error:", error);
-                let botMessage = `<p><strong>Mario:</strong> Sorry, there was an error processing your request. Please try again later.</p>`;
+                let botMessage = `<div class="bot-message"><strong>Mario:</strong> Sorry, something went wrong.</div>`;
                 chatBody.innerHTML += botMessage;
                 chatBody.scrollTop = chatBody.scrollHeight;
             });
@@ -198,7 +223,7 @@
         // Check if Enter key is pressed and trigger send action
         function checkEnter(event) {
             if (event.key === 'Enter') {
-                askQuestion();  // Trigger the ask question function
+                askQuestion();
             }
         }
     </script>
